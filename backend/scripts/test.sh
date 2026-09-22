@@ -4,4 +4,4 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-python -m pytest tests/integration
+python -m pytest tests
