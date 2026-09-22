@@ -2,8 +2,8 @@ from datetime import datetime
 
 from sqlalchemy import insert, select, update
 
-from db import async_session
-from jobs.models import Job, Worker
+from app.db import async_session
+from app.jobs.models import Job, Worker
 
 
 async def register_worker(name: str) -> int:

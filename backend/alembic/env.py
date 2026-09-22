@@ -7,12 +7,8 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-
-APP_DIR = Path(__file__).resolve().parents[1] / "app"
-sys.path.insert(0, str(APP_DIR))
-
-from db import DATABASE_URL
-from jobs.models import Base
+from app.config import DATABASE_URL
+from app.jobs.models import Base
 
 
 config = context.config

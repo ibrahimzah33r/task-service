@@ -1,20 +1,11 @@
-import os
-from pathlib import Path
-
 import pytest
-from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
 
-from jobs.models import Base
-
-
-ROOT_DIR = Path(__file__).resolve().parents[3]
-load_dotenv(ROOT_DIR / ".env")
-
-TEST_DATABASE_URL = os.environ["TEST_DATABASE_URL"]
+from app.config import TEST_DATABASE_URL
+from app.jobs.models import Base
 
 
 @pytest.fixture

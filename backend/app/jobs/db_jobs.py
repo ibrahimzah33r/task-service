@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 
 from sqlalchemy import select, update
 
-from db import async_session
-from jobs.models import Job, JobStatus
+from app.db import async_session
+from app.jobs.models import Job, JobStatus
 
 
 LEASE_SECONDS = 30

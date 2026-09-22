@@ -2,9 +2,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from jobs.models import JobType
-from workers.runner import generate_worker_name, process_job
-
+from app.jobs.models import JobType
+from app.workers.runner import (
+    generate_worker_name,
+    process_job,
+)
 
 def test_generate_worker_name_contains_separator():
     worker_name = generate_worker_name()

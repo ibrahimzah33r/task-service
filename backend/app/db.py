@@ -1,18 +1,10 @@
-import os
-from pathlib import Path
-
-from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
 
-
-ROOT_DIR = Path(__file__).resolve().parents[2]
-load_dotenv(ROOT_DIR / ".env")
-
-DATABASE_URL = os.environ["DATABASE_URL"]
+from app.config import DATABASE_URL
 
 
 engine = create_async_engine(

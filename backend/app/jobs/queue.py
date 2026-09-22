@@ -1,19 +1,10 @@
-import os
-from pathlib import Path
-
-from dotenv import load_dotenv
 from redis.asyncio import Redis
 
+from app.config import REDIS_URL
 
-ROOT_DIR = Path(__file__).resolve().parents[3]
-load_dotenv(ROOT_DIR / ".env")
-
-
-REDIS_URL = os.environ["REDIS_URL"]
 
 QUEUE_KEY = "jobs_queue"
 QUEUED_JOBS_KEY = "queued_jobs"
-
 
 redis = Redis.from_url(
     REDIS_URL,

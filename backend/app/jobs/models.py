@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Enum, Integer, String, Text
 
-from db import engine
+from app.db import engine
 from sqlalchemy.orm import declarative_base
 
 

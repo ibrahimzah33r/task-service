@@ -1,15 +1,11 @@
-from fastapi import (
-    APIRouter,
-    Depends,
-    HTTPException,
-)
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db import get_session
-from jobs.models import Job, JobStatus
-from jobs.queue import push_job
-from jobs.schemas import JobCreateSchema
+from app.db import get_session
+from app.jobs.models import Job, JobStatus
+from app.jobs.queue import push_job
+from app.jobs.schemas import JobCreateSchema
 
 
 router = APIRouter()
@@ -18,9 +14,7 @@ router = APIRouter()
 @router.post("/jobs")
 async def create_job(
     job_in: JobCreateSchema,
-    session: AsyncSession = Depends(
-        get_session
-    ),
+    session: AsyncSession = Depends(get_session),
 ):
     job = Job(
         type=job_in.type,
@@ -44,14 +38,10 @@ async def create_job(
 @router.get("/jobs/{job_id}")
 async def get_job(
     job_id: int,
-    session: AsyncSession = Depends(
-        get_session
-    ),
+    session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(
-        select(Job).where(
-            Job.id == job_id
-        )
+        select(Job).where(Job.id == job_id)
     )
 
     job = result.scalar_one_or_none()

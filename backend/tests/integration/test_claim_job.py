@@ -1,13 +1,16 @@
-from jobs.db_jobs import claim_job
-from jobs.models import Job, JobStatus, JobType
-
+from app.jobs.db_jobs import claim_job
+from app.jobs.models import (
+    Job,
+    JobStatus,
+    JobType,
+)
 
 async def test_job_can_only_be_claimed_once(
     test_db,
     monkeypatch,
 ):
     monkeypatch.setattr(
-        "jobs.db_jobs.async_session",
+        "app.jobs.db_jobs.async_session",
         test_db,
     )
 

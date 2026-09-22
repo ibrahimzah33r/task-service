@@ -1,9 +1,10 @@
 import asyncio
+import logging
 import socket
 import uuid
 from time import monotonic
 
-from jobs.db_jobs import (
+from app.jobs.db_jobs import (
     claim_job,
     complete_job,
     get_dispatchable_job_ids,
@@ -11,15 +12,16 @@ from jobs.db_jobs import (
     reset_expired_jobs,
     schedule_retry,
 )
-from jobs.models import JobType
-from jobs.queue import push_job
-from jobs.queue import pop_job
-from workers.db_workers import (
+from app.jobs.models import JobType
+from app.jobs.queue import pop_job, push_job
+from app.workers.db_workers import (
     mark_worker_stopped,
     register_worker,
     update_worker_heartbeat,
 )
 
+
+logger = logging.getLogger(__name__)
 
 HEARTBEAT_INTERVAL_SECONDS = 10
 IDLE_SLEEP_SECONDS = 0.5
@@ -61,9 +63,10 @@ async def worker_loop():
     worker_name = generate_worker_name()
     worker_id = await register_worker(worker_name)
 
-    print(
-        f"Worker started: {worker_name} "
-        f"(ID {worker_id})"
+    logger.info(
+        "Worker started: %s (ID %s)",
+        worker_name,
+        worker_id
     )
 
     last_heartbeat = monotonic()
@@ -106,8 +109,9 @@ async def worker_loop():
             if job is None:
                 continue
 
-            print(
-                f"Job started: {job.id}"
+            logger.info(
+                "Job started: %s",
+                job.id
             )
 
             try:
@@ -118,13 +122,15 @@ async def worker_loop():
                     result,
                 )
 
-                print(
-                    f"Job completed: {job.id}"
+                logger.info(
+                    "Job completed: %s",
+                    job.id
                 )
 
-            except Exception as exc:
-                print(
-                    f"Job {job.id} failed: {exc}"
+            except Exception:
+                logger.exception(
+                    "Job %s failed",
+                    job.id,
                 )
 
                 retrying, attempt = (
@@ -132,15 +138,17 @@ async def worker_loop():
                 )
 
                 if retrying:
-                    print(
-                        f"Job {job.id} scheduled "
-                        f"for retry {attempt}"
+                    logger.warning(
+                        "Job %s scheduled for retry %s",
+                        job.id,
+                        attempt,
                     )
 
                 else:
-                    print(
-                        f"Job {job.id} permanently "
-                        f"failed after {attempt - 1} retries"
+                    logger.error(
+                        "Job %s permanently failed after %s retries",
+                        job.id,
+                        attempt - 1
                     )
 
     finally:

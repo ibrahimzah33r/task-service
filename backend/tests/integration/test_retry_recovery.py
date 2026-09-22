@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 
-from jobs.db_jobs import (
+from app.jobs.db_jobs import (
     reset_expired_jobs,
     schedule_retry,
 )
-from jobs.models import (
+from app.jobs.models import (
     Job,
     JobStatus,
     JobType,
@@ -16,7 +16,7 @@ async def test_schedule_retry_updates_job(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        "jobs.db_jobs.async_session",
+        "app.jobs.db_jobs.async_session",
         test_db,
     )
 
@@ -60,7 +60,7 @@ async def test_reset_expired_job(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        "jobs.db_jobs.async_session",
+        "app.jobs.db_jobs.async_session",
         test_db,
     )
 
