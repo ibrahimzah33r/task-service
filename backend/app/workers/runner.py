@@ -58,6 +58,48 @@ async def recover_expired_jobs():
     for job_id in job_ids:
         await push_job(job_id)
 
+async def handle_job(job, worker_id: int):
+    logger.info(
+        "Processing job %s with worker %s",
+        job.id,
+        worker_id,
+    )
+
+    try:
+        result = await process_job(job)
+
+        await complete_job(
+            job.id,
+            result,
+        )
+
+        logger.info(
+            "Job %s completed successfully",
+            job.id,
+        )
+
+    except Exception:
+        logger.exception(
+            "Job %s failed",
+            job.id,
+        )
+
+        retrying, retry_count = await schedule_retry(
+            job.id
+        )
+
+        if retrying:
+            logger.warning(
+                "Job %s scheduled for retry %s",
+                job.id,
+                retry_count,
+            )
+        else:
+            logger.error(
+                "Job %s permanently failed after %s attempts",
+                job.id,
+                retry_count,
+            )
 
 async def worker_loop():
     worker_name = generate_worker_name()
@@ -66,7 +108,7 @@ async def worker_loop():
     logger.info(
         "Worker started: %s (ID %s)",
         worker_name,
-        worker_id
+        worker_id,
     )
 
     last_heartbeat = monotonic()
@@ -75,14 +117,8 @@ async def worker_loop():
         while True:
             now = monotonic()
 
-            if (
-                now - last_heartbeat
-                >= HEARTBEAT_INTERVAL_SECONDS
-            ):
-                await update_worker_heartbeat(
-                    worker_id
-                )
-
+            if now - last_heartbeat >= HEARTBEAT_INTERVAL:
+                await update_worker_heartbeat(worker_id)
                 last_heartbeat = now
 
             await recover_expired_jobs()
@@ -91,9 +127,7 @@ async def worker_loop():
             job_id = await pop_job()
 
             if job_id is None:
-                await asyncio.sleep(
-                    IDLE_SLEEP_SECONDS
-                )
+                await asyncio.sleep(IDLE_SLEEP)
                 continue
 
             claimed = await claim_job(
@@ -107,55 +141,25 @@ async def worker_loop():
             job = await get_job_by_id(job_id)
 
             if job is None:
+                logger.warning(
+                    "Claimed job %s could not be loaded",
+                    job_id,
+                )
                 continue
 
-            logger.info(
-                "Job started: %s",
-                job.id
+            await handle_job(
+                job,
+                worker_id,
             )
 
-            try:
-                result = await process_job(job)
-
-                await complete_job(
-                    job.id,
-                    result,
-                )
-
-                logger.info(
-                    "Job completed: %s",
-                    job.id
-                )
-
-            except Exception:
-                logger.exception(
-                    "Job %s failed",
-                    job.id,
-                )
-
-                retrying, attempt = (
-                    await schedule_retry(job.id)
-                )
-
-                if retrying:
-                    logger.warning(
-                        "Job %s scheduled for retry %s",
-                        job.id,
-                        attempt,
-                    )
-
-                else:
-                    logger.error(
-                        "Job %s permanently failed after %s retries",
-                        job.id,
-                        attempt - 1
-                    )
-
     finally:
-        await mark_worker_stopped(
-            worker_id
-        )
+        await mark_worker_stopped(worker_id)
 
+        logger.info(
+            "Worker stopped: %s (ID %s)",
+            worker_name,
+            worker_id,
+        )
 
 if __name__ == "__main__":
     asyncio.run(worker_loop())
