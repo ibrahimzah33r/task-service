@@ -4,11 +4,6 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Virtual environment
-venv/
-
-# Environment variables
-.env
 
 # IDEs
 .vscode/
@@ -22,3 +17,5 @@ Thumbs.db
 postgres_data/
 
 cmds.txt
+.venv/
+.env

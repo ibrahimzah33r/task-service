@@ -7,7 +7,11 @@ from sqlalchemy.ext.asyncio import (
 from app.config import TEST_DATABASE_URL
 from app.jobs.models import Base
 
-
+if not TEST_DATABASE_URL:
+    raise RuntimeError(
+        "TEST_DATABASE_URL must be set to run integration tests"
+    )
+    
 @pytest.fixture
 async def test_db():
     engine = create_async_engine(

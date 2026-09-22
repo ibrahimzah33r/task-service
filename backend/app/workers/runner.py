@@ -23,8 +23,8 @@ from app.workers.db_workers import (
 
 logger = logging.getLogger(__name__)
 
-HEARTBEAT_INTERVAL_SECONDS = 10
-IDLE_SLEEP_SECONDS = 0.5
+HEARTBEAT_INTERVAL = 10
+IDLE_SLEEP = 0.5
 
 
 def generate_worker_name():
