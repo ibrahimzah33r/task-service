@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from app.jobs.db_jobs import (
     reset_expired_jobs,
@@ -65,7 +65,7 @@ async def test_reset_expired_job(
     )
 
     expired_time = (
-        datetime.utcnow()
+        datetime.now(UTC)
         - timedelta(seconds=10)
     )
 

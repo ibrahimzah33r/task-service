@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select, update
 
@@ -22,7 +22,7 @@ async def claim_job(
     job_id: int,
     worker_id: int,
 ) -> bool:
-    lease_expires_at = datetime.utcnow() + timedelta(
+    lease_expires_at = datetime.now(UTC) + timedelta(
         seconds=LEASE_SECONDS
     )
 
@@ -33,8 +33,8 @@ async def claim_job(
                 Job.id == job_id,
                 Job.status == JobStatus.PENDING,
                 (
-                    (Job.retry_at == None)
-                    | (Job.retry_at <= datetime.utcnow())
+                    (Job.retry_at.is_(None))
+                    | (Job.retry_at <= datetime.now(UTC))
                 ),
             )
             .values(
@@ -42,7 +42,7 @@ async def claim_job(
                 worker_id=worker_id,
                 lease_expires_at=lease_expires_at,
                 retry_at=None,
-                updated_at=datetime.utcnow(),
+                updated_at=datetime.now(UTC),
             )
         )
 
@@ -64,7 +64,7 @@ async def complete_job(
                 status=JobStatus.SUCCESS,
                 lease_expires_at=None,
                 retry_at=None,
-                updated_at=datetime.utcnow(),
+                updated_at=datetime.now(UTC),
             )
         )
 
@@ -90,7 +90,7 @@ async def schedule_retry(job_id: int):
             job.status = JobStatus.FAILED
             job.lease_expires_at = None
             job.retry_at = None
-            job.updated_at = datetime.utcnow()
+            job.updated_at = datetime.now(UTC)
 
             await session.commit()
 
@@ -99,14 +99,14 @@ async def schedule_retry(job_id: int):
         delay_seconds = 2 ** next_retry_count
 
         job.retry_count = next_retry_count
-        job.retry_at = datetime.utcnow() + timedelta(
+        job.retry_at = datetime.now(UTC) + timedelta(
             seconds=delay_seconds
         )
 
         job.status = JobStatus.PENDING
         job.worker_id = None
         job.lease_expires_at = None
-        job.updated_at = datetime.utcnow()
+        job.updated_at = datetime.now(UTC)
 
         await session.commit()
 
@@ -114,7 +114,7 @@ async def schedule_retry(job_id: int):
 
 
 async def reset_expired_jobs():
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
 
     async with async_session() as session:
         result = await session.execute(
@@ -149,7 +149,7 @@ async def reset_expired_jobs():
 async def get_dispatchable_job_ids(
     limit: int = 100,
 ):
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
 
     async with async_session() as session:
         result = await session.execute(
@@ -157,7 +157,7 @@ async def get_dispatchable_job_ids(
             .where(
                 Job.status == JobStatus.PENDING,
                 (
-                    (Job.retry_at == None)
+                    (Job.retry_at.is_(None))
                     | (Job.retry_at <= now)
                 ),
             )

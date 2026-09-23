@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import insert, select, update
 
@@ -13,7 +13,7 @@ async def register_worker(name: str) -> int:
             .values(
                 name=name,
                 status="RUNNING",
-                last_heartbeat=datetime.utcnow(),
+                last_heartbeat=datetime.now(UTC),
             )
             .returning(Worker.id)
         )
@@ -34,7 +34,7 @@ async def update_worker_heartbeat(
             .where(Worker.id == worker_id)
             .values(
                 status="RUNNING",
-                last_heartbeat=datetime.utcnow(),
+                last_heartbeat=datetime.now(UTC),
             )
         )
 
@@ -50,7 +50,7 @@ async def mark_worker_stopped(
             .where(Worker.id == worker_id)
             .values(
                 status="STOPPED",
-                last_heartbeat=datetime.utcnow(),
+                last_heartbeat=datetime.now(UTC),
             )
         )
 
